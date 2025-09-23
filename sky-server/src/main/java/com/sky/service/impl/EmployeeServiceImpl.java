@@ -2,6 +2,7 @@ package com.sky.service.impl;
 
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.sky.annotation.AutoFill;
 import com.sky.constant.MessageConstant;
 import com.sky.constant.PasswordConstant;
 import com.sky.constant.StatusConstant;
@@ -10,6 +11,7 @@ import com.sky.dto.EmployeeDTO;
 import com.sky.dto.EmployeeLoginDTO;
 import com.sky.dto.EmployeePageQueryDTO;
 import com.sky.entity.Employee;
+import com.sky.enumeration.OperationType;
 import com.sky.exception.AccountLockedException;
 import com.sky.exception.AccountNotFoundException;
 import com.sky.exception.PasswordErrorException;
@@ -66,6 +68,8 @@ public class EmployeeServiceImpl implements EmployeeService {
         //3、返回实体对象
         return employee;
     }
+
+
     //新增员工
     @Override
     public void save(EmployeeDTO employeeDTO) {
@@ -78,21 +82,22 @@ public class EmployeeServiceImpl implements EmployeeService {
         //设置员工账号状态
         employee.setStatus(StatusConstant.ENABLE);
         //设置员工账号创建时间和更新时间
-        employee.setCreateTime(LocalDateTime.now());
-        employee.setUpdateTime(LocalDateTime.now());
+        /*employee.setCreateTime(LocalDateTime.now());
+        employee.setUpdateTime(LocalDateTime.now());*/
 
 
 
         //设置操作员工账号创建和更新的管理员id
 
         //获得操作员工账号创建和更新的管理员id
-        Long empId= BaseContext.getCurrentId();
+        /*Long empId= BaseContext.getCurrentId();
         employee.setCreateUser(empId);
-        employee.setUpdateUser(empId);
-        BaseContext.removeCurrentId();
+        employee.setUpdateUser(empId);*/
         //存入数据库
         employeeMapper.insert(employee);
     }
+
+
     //分页查询
     @Override
     public PageResult pageQuery(EmployeePageQueryDTO employeePageQueryDTO) {
@@ -100,6 +105,9 @@ public class EmployeeServiceImpl implements EmployeeService {
         Page<Employee> page=employeeMapper.pageQuery(employeePageQueryDTO);
         return new PageResult(page.getTotal(),page.getResult());
     }
+
+
+
     //启用或禁用员工账号
     @Override
     public void startOrStop(Integer status, Long id) {
@@ -112,6 +120,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         employeeMapper.update(employee);
     }
 
+    //根据id查询
     @Override
     public Employee getById(Long id) {
         Employee employee=employeeMapper.getById(id);
@@ -119,6 +128,8 @@ public class EmployeeServiceImpl implements EmployeeService {
         return employee;
     }
 
+
+    //更新员工信息
     @Override
     public void update(EmployeeDTO employeeDTO) {
         Employee employee=new Employee();
