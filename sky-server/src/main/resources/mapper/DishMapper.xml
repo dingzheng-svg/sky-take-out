@@ -7,12 +7,37 @@
         insert into dish (name, category_id, price, image, description, create_time, update_time, create_user, update_user,status)
         value (#{name},#{categoryId},#{price},#{image},#{description},#{createTime},#{updateTime},#{createUser},#{updateUser},#{status})
     </insert>
+    <update id="update">
+        update dish
+        <set>
+            <if test="name != null"> name=#{name} ,</if>
+            <if test="categoryId != null"> category_id=#{categoryId} ,</if>
+            <if test="price != null"> price=#{price} ,</if>
+            <if test="image != null"> image=#{image} ,</if>
+            <if test="description != null"> description=#{description} ,</if>
+            <if test="status != null"> status=#{status} ,</if>
+            <if test="createTime != null"> create_time=#{createTime} ,</if>
+            <if test="updateTime != null"> update_time=#{updateTime} ,</if>
+            <if test="createUser != null"> create_user=#{createUser} ,</if>
+            <if test="updateUser != null"> update_user=#{updateUser} ,</if>
+
+        </set>
+        where id=#{id}
+
+    </update>
+
+
+
     <delete id="deleteByIds">
         delete from dish where id in
                                <foreach collection="ids" item="id" separator="," open="(" close=")">
                                    #{id}
                                </foreach>
     </delete>
+
+
+
+
     <select id="pageQuery" resultType="com.sky.vo.DishVO">
         select d.*,c.name category_name from dish d left join category c on d.category_id = c.id
         <where>
@@ -22,11 +47,50 @@
             <if test="status != null ">
                 and d.status = #{status}
             </if>
-            <if test="category_id != null ">
+            <if test="categoryId != null ">
                 and d.category_id = #{categoryId}
             </if>
 
 
         </where>
+    </select>
+
+
+
+    <resultMap id="dishMap" type="com.sky.vo.DishVO">
+        <id column="d_id" property="id"/>
+        <result column="d_name" property="name"/>
+        <result column="category_id" property="categoryId"/>
+        <result column="price" property="price"/>
+        <result column="image" property="image"/>
+        <result column="description" property="description"/>
+        <result column="status" property="status"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="update_user" property="updateUser"/>
+        <collection property="flavors" ofType="dishFlavor">
+            <id column="df_id" property="id"/>
+            <result column="dish_id" property="dishId"/>
+            <result column="df_name" property="name"/>
+            <result column="value" property="value"/>
+        </collection>
+
+    </resultMap>
+    <select id="getByCategoryId" resultMap="dishMap">
+        select d.id    d_id,
+               d.name  d_name,
+               category_id,
+               price,
+               image,
+               description,
+               status,
+               update_time,
+               update_user,
+               df.id   df_id,
+               dish_id,
+               df.name df_name,
+               value
+        from dish d
+                 left join dish_flavor df on d.id = df.dish_id
+        where d.category_id = #{categoryId}
     </select>
 </mapper>

@@ -59,7 +59,8 @@ public class DishServiceImpl implements DishService {
     @Override
     public PageResult pageQuery(DishPageQueryDTO dishPageQueryDTO) {
         PageHelper.startPage(dishPageQueryDTO.getPage(),dishPageQueryDTO.getPageSize());
-        Page<DishVO> page=dishMapper.pageQuery();
+
+        Page<DishVO> page=dishMapper.pageQuery(dishPageQueryDTO);
         return new PageResult(page.getTotal(),page.getResult());
     }
 
@@ -86,5 +87,56 @@ public class DishServiceImpl implements DishService {
 
 
 
+    }
+
+    //查询回显
+    @Override
+    public DishVO getByIdWithFlavor(Long id) {
+        //获得菜品数据
+        Dish dish = dishMapper.getById(id);
+        //获得菜品口味数据
+        List<DishFlavor> dishFlavors=dishFlavorMapper.getByDishId(id);
+
+        DishVO dishVO=new DishVO();
+        BeanUtils.copyProperties(dish,dishVO);
+
+        if(!dishFlavors.isEmpty()){
+            dishVO.setFlavors(dishFlavors);
+        }
+        return dishVO;
+
+    }
+
+    //修改菜品数据
+    @Override
+    public void updateWithFlavor(DishDTO dishDTO) {
+        Dish dish=new Dish();
+        BeanUtils.copyProperties(dishDTO,dish);
+
+        //删除菜品关联的菜品口味
+        dishFlavorMapper.deleteDishId(dish.getId());
+
+        //修改菜品数据
+        dishMapper.update(dish);
+
+        List<DishFlavor> flavors = dish.getFlavors();
+        //给每个口味添加上关联的菜品id
+        if(!flavors.isEmpty()){
+            flavors.forEach(dishFlavor -> dishFlavor.setDishId(dish.getId()));
+            dishFlavorMapper.insertBatch(flavors);
+        }
+
+
+    }
+
+
+    //根据分类id查询
+    @Override
+    public List<DishVO> getByCategoryId(Integer categoryId) {
+        List<DishVO> dishVOS=dishMapper.getByCategoryId(categoryId);
+        if(!dishVOS.isEmpty()){
+            return dishVOS;
+        }
+        return null;
     }
 }
