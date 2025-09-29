@@ -16,7 +16,7 @@ import java.util.List;
 
 @Slf4j
 @RequestMapping("/admin/setmeal")
-@Api("套餐相关接口")
+@Api(tags = {"套餐相关接口"})
 @RestController
 public class SetmealController {
     @Autowired
@@ -63,6 +63,7 @@ public class SetmealController {
         return Result.success();
     }
 
+    @ApiOperation("删除套餐")
     @DeleteMapping
     public Result delete(@RequestParam List<Long> ids){
         log.info("要删除的套餐的id：{}",ids);

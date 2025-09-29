@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.util.UUID;
 
 @Slf4j
-@Api("文件上传")
+@Api(tags = {"文件上传"})
 @RequestMapping("/admin/common")
 @RestController
 public class CommonController {

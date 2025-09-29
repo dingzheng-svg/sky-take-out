@@ -10,3 +10,10 @@ sky:
     endpoint: https://oss-cn-beijing.aliyuncs.com
     bucketName: xuebaowomenshnag
     region: cn-beijing
+  redis:
+    host: localhost
+    port: 6379
+    database: 10
+  wechat:
+    appid: wx192f05527fb7fbf0
+    secret: 68b6f455d828da867be05db3772c165a
