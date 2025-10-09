@@ -19,4 +19,6 @@ public interface SetmealDishMapper {
 
 
     void deletebySetmealIds(List<Long> setMealIds);
+
+
 }

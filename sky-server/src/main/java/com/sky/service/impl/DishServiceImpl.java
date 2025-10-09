@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -132,10 +133,24 @@ public class DishServiceImpl implements DishService {
 
     //根据分类id查询
     @Override
-    public List<DishVO> getByCategoryId(Integer categoryId) {
+    public List<DishVO> getByCategoryId(Long categoryId) {
         List<DishVO> dishVOS=dishMapper.getByCategoryId(categoryId);
         if(!dishVOS.isEmpty()){
             return dishVOS;
+        }
+        return null;
+    }
+
+
+    /**
+     * 条件查询菜品和口味
+     * @param dish
+     * @return
+     */
+    public List<DishVO> listWithFlavor(Dish dish) {
+        List<DishVO> dishList = dishMapper.getByCategoryId(dish.getCategoryId());
+        if(!dishList.isEmpty()){
+            return dishList;
         }
         return null;
     }
