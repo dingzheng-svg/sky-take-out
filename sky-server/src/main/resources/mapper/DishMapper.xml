@@ -75,7 +75,7 @@
         </collection>
 
     </resultMap>
-    <select id="getByCategoryId" resultMap="dishMap">
+    <select id="list" resultMap="dishMap">
         select d.id    d_id,
                d.name  d_name,
                category_id,
@@ -91,6 +91,14 @@
                value
         from dish d
                  left join dish_flavor df on d.id = df.dish_id
-        where d.category_id = #{categoryId}
+        <where>
+            <if test="id!=null"> and d_id=#{id} </if>
+            <if test="name!=null"> and d_name=#{name}</if>
+            <if test="categoryId!=null"> and category_id=#{categoryId}</if>
+            <if test="price!=null"> and price=#{price}</if>
+            <if test="image!=null"> and image=#{image}</if>
+            <if test="description!=null"> and description=#{description}</if>
+            <if test="status!=null"> and status=#{status}</if>
+        </where>
     </select>
 </mapper>

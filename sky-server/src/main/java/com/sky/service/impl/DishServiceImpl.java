@@ -134,7 +134,9 @@ public class DishServiceImpl implements DishService {
     //根据分类id查询
     @Override
     public List<DishVO> getByCategoryId(Long categoryId) {
-        List<DishVO> dishVOS=dishMapper.getByCategoryId(categoryId);
+        Dish dish=new Dish();
+        dish.setCategoryId(categoryId);
+        List<DishVO> dishVOS=dishMapper.list(dish);
         if(!dishVOS.isEmpty()){
             return dishVOS;
         }
@@ -148,10 +150,8 @@ public class DishServiceImpl implements DishService {
      * @return
      */
     public List<DishVO> listWithFlavor(Dish dish) {
-        List<DishVO> dishList = dishMapper.getByCategoryId(dish.getCategoryId());
-        if(!dishList.isEmpty()){
-            return dishList;
-        }
-        return null;
+        List<DishVO> dishVOList = dishMapper.list(dish);
+
+        return dishVOList;
     }
 }
