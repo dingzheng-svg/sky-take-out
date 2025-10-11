@@ -51,6 +51,7 @@ public class OrdersDTO implements Serializable {
     //收货人
     private String consignee;
 
+
     private List<OrderDetail> orderDetails;
 
 }
