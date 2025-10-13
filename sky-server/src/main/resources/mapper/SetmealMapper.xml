@@ -29,6 +29,8 @@
         #{id}
     </foreach>
     </delete>
+
+
     <select id="pageQuery" resultType="com.sky.vo.SetmealVO">
         select *,c.name categoryName from setmeal left join category c  on c.id = setmeal.category_id
         <where>
@@ -43,6 +45,8 @@
             </if>
         </where>
     </select>
+
+
     <resultMap id="SetmealVOResultMap" type="com.sky.vo.SetmealVO">
         <id column="s_id" property="id"/>
         <result column="s_category_id" property="categoryId"/>
@@ -53,7 +57,7 @@
         <result column="s_image" property="image"/>
         <result column="s_update_time" property="updateTime"/>
         <result column="c_category_name" property="categoryName"/>
-        <collection property="setmealDishes" ofType="setmealDish">
+        <collection property="setmealDishes" ofType="SetmealDish">
             <id column="sd_id" property="id"/>
             <result column="sd_setmeal_id" property="setmealId"/>
             <result column="s_dish_id" property="dishId"/>

@@ -1,11 +1,13 @@
 package com.sky.mapper;
 
+import com.github.pagehelper.Page;
 import com.sky.entity.Orders;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Mapper
 public interface OrderMapper {
@@ -28,7 +30,11 @@ public interface OrderMapper {
      * @param orders
      */
     void update(Orders orders);
-    @Update("update orders set status = #{orderStatus},pay_status = #{orderPaidStatus} ,checkout_time = #{checkOutTime} "
-            +"where number=#{orderNumber}")
-    void updateStatus(Integer orderStatus, Integer orderPaidStatus, LocalDateTime checkOutTime, String orderNumber);
+
+    /**
+     * 获取多份订单信息
+     * @param orders
+     * @return
+     */
+    List<Orders> list(Orders orders);
 }
