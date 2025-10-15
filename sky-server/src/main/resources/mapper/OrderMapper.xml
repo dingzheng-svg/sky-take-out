@@ -48,14 +48,14 @@
             <if test="deliveryTime != null">
                 delivery_time = #{deliveryTime},
             </if>
-            <if test="number != null">
-            number=#{number},
-            </if>
         </set>
-        where id = #{id}
+        <where>
+            <if test="id != null">and id=#{id}</if>
+            <if test="number != null">and number=#{number}</if>
+        </where>
     </update>
 
-    <resultMap id="OrdersMap" type="com.sky.entity.Orders">
+    <resultMap id="OrdersMap" type="com.sky.vo.OrderVO">
         <!--第一行-->
         <id column="o_id" property="id"/>
         <result column="o_number" property="number"/>
@@ -114,9 +114,25 @@
                od.amount as od_amount
         from orders o left join order_detail od on o.id = od.order_id
         <where>
-            <if test="id != null">and o.id=#{id} </if>
-            <if test="status != null">and o.status=#{status} </if>
+            <if test="orders.id != null">and o.id=#{orders.id} </if>
+            <if test="orders.status != null">and o.status=#{orders.status} </if>
+            <if test="orders.number != null"> and o.number=#{orders.number}</if>
+            <if test="orders.phone != null"> and o.phone=#{orders.phone}</if>
+            <if test="beginTime != null and endTime != null">and order_time between #{beginTime} and #{endTime}</if>
+
         </where>
     </select>
+    <select id="statistics" resultType="java.util.Map">
+        select (case
+                    when status=1 then 'pendingPayment'
+                    when status=2 then 'toBeConfirmed'
+                    when status=3 then 'confirmed'
+                    when status=4 then 'deliveryInProgress'
+                    when status=5 then 'completed'
+                    when status=6 then 'cancelled'
+            end
+                   ) order_status,count(*) num from orders group by status order by status;
+    </select>
+
 
 </mapper>

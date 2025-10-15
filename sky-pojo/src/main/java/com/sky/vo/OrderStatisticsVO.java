@@ -6,11 +6,11 @@ import java.io.Serializable;
 @Data
 public class OrderStatisticsVO implements Serializable {
     //待接单数量
-    private Integer toBeConfirmed;
+    private Long toBeConfirmed;
 
     //待派送数量
-    private Integer confirmed;
+    private Long confirmed;
 
     //派送中数量
-    private Integer deliveryInProgress;
+    private Long deliveryInProgress;
 }

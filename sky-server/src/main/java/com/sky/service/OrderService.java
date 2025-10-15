@@ -1,13 +1,12 @@
 package com.sky.service;
 
-import com.sky.dto.OrdersDTO;
-import com.sky.dto.OrdersPageQueryDTO;
-import com.sky.dto.OrdersPaymentDTO;
-import com.sky.dto.OrdersSubmitDTO;
+import com.sky.dto.*;
 import com.sky.entity.Orders;
 import com.sky.result.PageResult;
 import com.sky.vo.OrderPaymentVO;
+import com.sky.vo.OrderStatisticsVO;
 import com.sky.vo.OrderSubmitVO;
+import com.sky.vo.OrderVO;
 
 public interface OrderService {
     /**
@@ -15,7 +14,7 @@ public interface OrderService {
      * @param ordersSubmitDTO
      * @return
      */
-    OrderSubmitVO submitOrder(OrdersSubmitDTO ordersSubmitDTO);
+    OrderSubmitVO submitOrder(OrdersSubmitDTO ordersSubmitDTO) throws NoSuchFieldException, IllegalAccessException;
 
     /**
      * 订单支付
@@ -32,9 +31,19 @@ public interface OrderService {
 
     PageResult pageQuery(OrdersPageQueryDTO ordersPageQueryDTO);
 
-    Orders getOrderDetail(Long id);
+    OrderVO getOrderDetail(Long id);
 
     void repetition(Long id);
 
     void cancel(Long id);
+
+    void confirm(OrdersDTO ordersDTO);
+
+    void delivery(Long id);
+
+    void complete(Long id);
+
+    void rejection(OrdersRejectionDTO ordersRejectionDTO);
+
+    OrderStatisticsVO statistics();
 }

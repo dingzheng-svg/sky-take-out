@@ -17,3 +17,8 @@ sky:
   wechat:
     appid: wx192f05527fb7fbf0
     secret: 68b6f455d828da867be05db3772c165a
+  baidu:
+    ak: 9RZMSsL7Ub09eYZ215XC1xosmuZjukxe
+    lUrl: https://api.map.baidu.com/geocoding/v3/
+    url: https://api.map.baidu.com/directionlite/v1/riding
+    address: 北京市海淀区上地十街10号

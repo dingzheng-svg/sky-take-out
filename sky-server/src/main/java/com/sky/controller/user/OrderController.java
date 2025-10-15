@@ -10,6 +10,7 @@ import com.sky.result.Result;
 import com.sky.service.OrderService;
 import com.sky.vo.OrderPaymentVO;
 import com.sky.vo.OrderSubmitVO;
+import com.sky.vo.OrderVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +28,7 @@ public class OrderController {
 
     @ApiOperation("用户下单")
     @PostMapping("/submit")
-    public Result<OrderSubmitVO> submit(@RequestBody OrdersSubmitDTO ordersSubmitDTO){
+    public Result<OrderSubmitVO> submit(@RequestBody OrdersSubmitDTO ordersSubmitDTO) throws NoSuchFieldException, IllegalAccessException {
         log.info("用户下单:{}",ordersSubmitDTO);
         OrderSubmitVO orderSubmitVO=orderService.submitOrder(ordersSubmitDTO);
         return Result.success(orderSubmitVO);
@@ -58,10 +59,10 @@ public class OrderController {
 
     @GetMapping("/orderDetail/{id}")
     @ApiOperation("查看订单详情")
-    public Result<Orders> getOrderDetail(@PathVariable Long id){
+    public Result<OrderVO> getOrderDetail(@PathVariable Long id){
         log.info("查看订单详情:{}",id);
-        Orders orders=orderService.getOrderDetail(id);
-        return Result.success(orders);
+        OrderVO orderVO=orderService.getOrderDetail(id);
+        return Result.success(orderVO);
     }
 
     @PostMapping("/repetition/{id}")

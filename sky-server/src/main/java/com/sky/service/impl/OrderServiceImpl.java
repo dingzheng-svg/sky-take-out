@@ -5,10 +5,7 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.sky.constant.MessageConstant;
 import com.sky.context.BaseContext;
-import com.sky.dto.OrdersDTO;
-import com.sky.dto.OrdersPageQueryDTO;
-import com.sky.dto.OrdersPaymentDTO;
-import com.sky.dto.OrdersSubmitDTO;
+import com.sky.dto.*;
 import com.sky.entity.*;
 import com.sky.exception.AddressBookBusinessException;
 import com.sky.exception.BaseException;
@@ -17,9 +14,12 @@ import com.sky.exception.ShoppingCartBusinessException;
 import com.sky.mapper.*;
 import com.sky.result.PageResult;
 import com.sky.service.OrderService;
+import com.sky.utils.BaiduMapUtil;
 import com.sky.utils.WeChatPayUtil;
 import com.sky.vo.OrderPaymentVO;
+import com.sky.vo.OrderStatisticsVO;
 import com.sky.vo.OrderSubmitVO;
+import com.sky.vo.OrderVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +30,9 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -46,24 +49,32 @@ public class OrderServiceImpl implements OrderService {
     private ShoppingCartMapper shoppingCartMapper;
     @Autowired
     private UserMapper userMapper;
-
+    @Autowired
+    private BaiduMapUtil baiduMapUtil;
     @Autowired
     private WeChatPayUtil weChatPayUtil;
 
-
+    /**
+     * 用户下单
+     * @param ordersSubmitDTO
+     * @return
+     */
     @Transactional
-    //用户提交订单
+
     @Override
-    public OrderSubmitVO submitOrder(OrdersSubmitDTO ordersSubmitDTO) {
+    public OrderSubmitVO submitOrder(OrdersSubmitDTO ordersSubmitDTO) throws NoSuchFieldException, IllegalAccessException {
 
 
         //判断地址是否为空
         Long addressBookId = ordersSubmitDTO.getAddressBookId();
         AddressBook addressBook = addressBookMapper.getById(addressBookId);
+
         if (addressBook == null) {
             throw new AddressBookBusinessException(MessageConstant.ADDRESS_BOOK_IS_NULL);
         }
 
+        //判断用户收货地址是否超过5公里
+        baiduMapUtil.isOverDistance(addressBook.getWholeAddress());
 
         //判断购物车是否为空
         Long userId = BaseContext.getCurrentId();
@@ -190,21 +201,38 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     public PageResult pageQuery(OrdersPageQueryDTO ordersPageQueryDTO) {
-        PageHelper.startPage(ordersPageQueryDTO.getPage(), ordersPageQueryDTO.getPageSize());
         Orders orders = Orders.builder()
+                .userId(BaseContext.getCurrentId())
+                .number(ordersPageQueryDTO.getNumber())
+                .phone(ordersPageQueryDTO.getPhone())
                 .status(ordersPageQueryDTO.getStatus())
                 .build();
-        Page<Orders> page = (Page<Orders>) orderMapper.list(orders);
-        return new PageResult(page.getTotal(), page.getResult());
+        PageHelper.startPage(ordersPageQueryDTO.getPage(), ordersPageQueryDTO.getPageSize());
+
+        Page<OrderVO> page = (Page<OrderVO>) orderMapper.list(orders, ordersPageQueryDTO.getBeginTime(), ordersPageQueryDTO.getEndTime());
+        return new PageResult(page.size(), page.getResult());
     }
 
+    /**
+     * 获取订单详情
+     *
+     * @param id
+     * @return
+     */
     @Override
-    public Orders getOrderDetail(Long id) {
-        Orders orders = Orders.builder()
-                .id(id)
-                .build();
-        List<Orders> list = orderMapper.list(orders);
-        return list.get(0);
+    public OrderVO getOrderDetail(Long id) {
+
+        Orders orders = Orders.builder().id(id).userId(BaseContext.getCurrentId()).build();
+
+        List<OrderVO> list = orderMapper.list(orders, null, null);
+
+        OrderVO orderVO = list.get(0);
+        StringBuffer orderDishes = new StringBuffer();
+        orderVO.getOrderDetailList().forEach(orderDetail -> {
+            orderDishes.append(orderDetail.getName()).append(" ");
+        });
+        orderVO.setOrderDishes(orderDishes.toString());
+        return orderVO;
     }
 
     /**
@@ -217,7 +245,7 @@ public class OrderServiceImpl implements OrderService {
         Orders orders = Orders.builder()
                 .id(id)
                 .build();
-        orders = orderMapper.list(orders).get(0);
+        orders = orderMapper.list(orders, null, null).get(0);
         List<OrderDetail> orderDetailList = orders.getOrderDetailList();
         Long userId = BaseContext.getCurrentId();
         List<ShoppingCart> shoppingCarts = new ArrayList<>();
@@ -245,5 +273,96 @@ public class OrderServiceImpl implements OrderService {
                 .status(Orders.CANCELLED)
                 .build();
         orderMapper.update(orders);
+    }
+
+
+    /**
+     * 接单
+     *
+     * @param ordersDTO
+     */
+    @Override
+    public void confirm(OrdersDTO ordersDTO) {
+        Orders orders = new Orders();
+        BeanUtils.copyProperties(ordersDTO, orders);
+        orders.setStatus(Orders.CONFIRMED);
+        orderMapper.update(orders);
+    }
+
+    /**
+     * 派送
+     *
+     * @param id
+     */
+    @Override
+    public void delivery(Long id) {
+        Orders orders = Orders.builder()
+                .id(id)
+                .status(Orders.DELIVERY_IN_PROGRESS)
+                .build();
+        orderMapper.update(orders);
+
+    }
+
+    /**
+     * 完成订单
+     */
+    @Override
+    public void complete(Long id) {
+        Orders orders = Orders.builder()
+                .id(id)
+                .status(Orders.COMPLETED)
+                .build();
+        orderMapper.update(orders);
+    }
+
+    /**
+     * 拒单
+     *
+     * @param ordersRejectionDTO
+     */
+    @Override
+    public void rejection(OrdersRejectionDTO ordersRejectionDTO) {
+        Orders orders = Orders.builder().status(Orders.CANCELLED).build();
+        BeanUtils.copyProperties(ordersRejectionDTO, orders);
+
+        orderMapper.update(orders);
+    }
+
+    /**
+     * 各状态订单数据统计
+     *
+     * @return
+     */
+    @Override
+    public OrderStatisticsVO statistics() {
+        OrderStatisticsVO orderStatisticsVO = new OrderStatisticsVO();
+        List<Map<String, Object>> statistics = orderMapper.statistics();
+
+        List<Object> orderStatus = statistics.stream().map(statisticsMap ->
+                statisticsMap.get("order_status")
+        ).collect(Collectors.toList());
+
+        List<Object> statusNumber = statistics.stream().map(statisticsMap ->
+                statisticsMap.get("num")
+        ).collect(Collectors.toList());
+        //初始化数据
+        orderStatisticsVO.setDeliveryInProgress(0L);
+        orderStatisticsVO.setConfirmed(0L);
+        orderStatisticsVO.setToBeConfirmed(0L);
+        //遍历集合，从中获取数据
+        for (int i = 0; i < orderStatus.size(); i++) {
+            String status=(String) orderStatus.get(i);
+            if (status.equals("toBeConfirmed")){
+                orderStatisticsVO.setToBeConfirmed((Long) statusNumber.get(i));
+            }else if (status.equals("confirmed")){
+                orderStatisticsVO.setConfirmed((Long) statusNumber.get(i));
+            }else if (status.equals("deliveryInProgress")){
+                orderStatisticsVO.setDeliveryInProgress((Long) statusNumber.get(i));
+            }
+        }
+
+        return orderStatisticsVO;
+
     }
 }
