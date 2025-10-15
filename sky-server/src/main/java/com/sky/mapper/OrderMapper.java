@@ -44,4 +44,7 @@ public interface OrderMapper {
     List<OrderVO> list(Orders orders, LocalDateTime beginTime, LocalDateTime endTime);
 
     List<Map<String,Object>> statistics();
+
+    @Select("select * from orders where status=#{status} and order_time< #{time}")
+    List<Orders> getTimeOutOrder(Integer status, LocalDateTime time);
 }

@@ -271,6 +271,7 @@ public class OrderServiceImpl implements OrderService {
         Orders orders = Orders.builder()
                 .id(id)
                 .status(Orders.CANCELLED)
+                .cancelTime(LocalDateTime.now())
                 .build();
         orderMapper.update(orders);
     }
@@ -325,7 +326,8 @@ public class OrderServiceImpl implements OrderService {
     public void rejection(OrdersRejectionDTO ordersRejectionDTO) {
         Orders orders = Orders.builder().status(Orders.CANCELLED).build();
         BeanUtils.copyProperties(ordersRejectionDTO, orders);
-
+        orders.setPayStatus(Orders.REFUND);
+        orders.setCancelTime(LocalDateTime.now());
         orderMapper.update(orders);
     }
 
