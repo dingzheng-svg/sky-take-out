@@ -1,5 +1,6 @@
 package com.sky.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
@@ -20,6 +21,7 @@ import com.sky.vo.OrderPaymentVO;
 import com.sky.vo.OrderStatisticsVO;
 import com.sky.vo.OrderSubmitVO;
 import com.sky.vo.OrderVO;
+import com.sky.websocket.WebSocketServer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,10 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -53,7 +52,8 @@ public class OrderServiceImpl implements OrderService {
     private BaiduMapUtil baiduMapUtil;
     @Autowired
     private WeChatPayUtil weChatPayUtil;
-
+    @Autowired
+    private WebSocketServer webSocketServer;
     /**
      * 用户下单
      * @param ordersSubmitDTO
@@ -74,7 +74,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         //判断用户收货地址是否超过5公里
-        baiduMapUtil.isOverDistance(addressBook.getWholeAddress());
+        //baiduMapUtil.isOverDistance(addressBook.getWholeAddress());
 
         //判断购物车是否为空
         Long userId = BaseContext.getCurrentId();
@@ -158,8 +158,8 @@ public class OrderServiceImpl implements OrderService {
         LocalDateTime check_out_time = LocalDateTime.now();
         //获取订单号码
         String orderNumber = ordersPaymentDTO.getOrderNumber();
-
-        log.info("调用updateStatus,用于替换微信支付更新数据状态问题");
+        Orders ordersDB=orderMapper.getByNumber(orderNumber);
+        log.info("调用update,用于替换微信支付更新数据状态问题");
         Orders orders = Orders.builder()
                 .status(orderStatus)
                 .payStatus(orderPaidStatus)
@@ -167,6 +167,14 @@ public class OrderServiceImpl implements OrderService {
                 .number(orderNumber)
                 .build();
 
+        //向管理端发送消息
+        Map map=new HashMap<>();
+        map.put("type",1);
+        map.put("orderId",ordersDB.getId());
+        map.put("content","订单号："+ordersDB.getNumber());
+        String jsonString = JSON.toJSONString(map);
+
+        webSocketServer.sendToAllClient(jsonString);
         orderMapper.update(orders);
 
         return vo;
