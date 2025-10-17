@@ -57,71 +57,56 @@
 
     <resultMap id="OrdersMap" type="com.sky.vo.OrderVO">
         <!--第一行-->
-        <id column="o_id" property="id"/>
-        <result column="o_number" property="number"/>
-        <result column="o_status" property="status"/>
-        <result column="o_user_id" property="userId"/>
+        <id column="id" property="id"/>
+        <result column="number" property="number"/>
+        <result column="status" property="status"/>
+        <result column="user_id" property="userId"/>
         <!--第二行-->
-        <result column="o_address_book_id" property="addressBookId"/>
-        <result column="o_order_time" property="orderTime"/>
-        <result column="o_checkout_time" property="checkoutTime"/>
-        <result column="o_pay_method" property="payMethod"/>
+        <result column="address_book_id" property="addressBookId"/>
+        <result column="order_time" property="orderTime"/>
+        <result column="checkout_time" property="checkoutTime"/>
+        <result column="pay_method" property="payMethod"/>
         <!--第三行-->
-        <result column="o_pay_status" property="payStatus"/>
-        <result column="o_amount" property="amount"/>
-        <result column="o_remark" property="remark"/>
-        <result column="o_phone" property="phone"/>
+        <result column="pay_status" property="payStatus"/>
+        <result column="amount" property="amount"/>
+        <result column="remark" property="remark"/>
+        <result column="phone" property="phone"/>
         <!--第四行-->
-        <result column="o_address" property="address"/>
-        <result column="o_user_name" property="userName"/>
-        <result column="o_consignee" property="consignee"/>
-        <result column="o_cancel_reason" property="cancelReason"/>
+        <result column="address" property="address"/>
+        <result column="user_name" property="userName"/>
+        <result column="consignee" property="consignee"/>
+        <result column="cancel_reason" property="cancelReason"/>
         <!--第五行-->
-        <result column="o_rejection_reason" property="rejectionReason"/>
-        <result column="o_cancel_time" property="cancelTime"/>
-        <result column="o_estimated_delivery_time" property="estimatedDeliveryTime"/>
-        <result column="o_delivery_status" property="deliveryStatus"/>
+        <result column="rejection_reason" property="rejectionReason"/>
+        <result column="cancel_time" property="cancelTime"/>
+        <result column="estimated_delivery_time" property="estimatedDeliveryTime"/>
+        <result column="delivery_status" property="deliveryStatus"/>
         <!--第六行-->
-        <result column="o_delivery_time" property="deliveryTime"/>
-        <result column="o_pack_amount" property="packAmount"/>
-        <result column="o_tableware_number" property="tablewareNumber"/>
-        <result column="o_tableware_status" property="tablewareStatus"/>
+        <result column="delivery_time" property="deliveryTime"/>
+        <result column="pack_amount" property="packAmount"/>
+        <result column="tableware_number" property="tablewareNumber"/>
+        <result column="tableware_status" property="tablewareStatus"/>
 
-        <collection property="orderDetailList" ofType="OrderDetail">
-            <id column="od_id" property="id"/>
-            <result column="od_name" property="name"/>
-            <result column="od_image" property="image"/>
-            <result column="od_order_id" property="orderId"/>
+        <collection property="orderDetailList" ofType="OrderDetail" select="getDetailList" column="id"/>
 
-            <result column="od_dish_id" property="dishId"/>
-            <result column="od_setmeal_id" property="setmealId"/>
-            <result column="od_dish_flavor" property="dishFlavor"/>
-            <result column="od_number" property="number"/>
-
-            <result column="od_amount" property="amount"/>
-        </collection>
     </resultMap>
     <select id="list" resultMap="OrdersMap">
-        select o.id as o_id, o.number as o_number, o.status as o_status, o.user_id as o_user_id,
-               o.address_book_id as o_address_book_id, o.order_time as o_order_time, o.checkout_time as o_checkout_time, o.pay_method as o_pay_method,
-               o.pay_status as o_pay_status, o.amount as o_amount, o.remark as o_remark, o.phone as o_phone,
-               o.address as o_address, o.user_name as o_user_name, o.consignee as o_consignee, o.cancel_reason as o_cancel_reason,
-               o.rejection_reason as o_rejection_reason, o.cancel_time as o_cancel_time, o.estimated_delivery_time as o_estimated_delivery_time, o.delivery_status as o_delivery_status,
-               o.delivery_time as o_delivery_time, o.pack_amount as o_pack_amount, o.tableware_number as o_tableware_number, o.tableware_status as o_tableware_status,
-
-               od.id as od_id, od.name as od_name, od.image as od_image, od.order_id as od_order_id,
-               od.dish_id as od_dish_id, od.setmeal_id as od_setmeal_id, od.dish_flavor as od_dish_flavor, od.number as od_number,
-               od.amount as od_amount
-        from orders o left join order_detail od on o.id = od.order_id
+        select * from orders
         <where>
-            <if test="orders.id != null">and o.id=#{orders.id} </if>
-            <if test="orders.status != null">and o.status=#{orders.status} </if>
-            <if test="orders.number != null"> and o.number=#{orders.number}</if>
-            <if test="orders.phone != null"> and o.phone=#{orders.phone}</if>
+            <if test="orders.id != null">and id=#{orders.id} </if>
+            <if test="orders.status != null">and status=#{orders.status} </if>
+            <if test="orders.number != null"> and number like concat("%",#{orders.number},"%")</if>
+            <if test="orders.phone != null"> and phone like concat("%",#{orders.number},"%")</if>
             <if test="beginTime != null and endTime != null">and order_time between #{beginTime} and #{endTime}</if>
-
         </where>
+
     </select>
+    <!--子查询-->
+    <select id="getDetailList" resultType="orderDetail">
+        select * from order_detail where order_id=#{id}
+    </select>
+
+
     <select id="statistics" resultType="java.util.Map">
         select (case
                     when status=1 then 'pendingPayment'

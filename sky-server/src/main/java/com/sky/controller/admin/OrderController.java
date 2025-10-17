@@ -30,7 +30,7 @@ public class OrderController {
     @ApiOperation("订单搜索")
     public Result<PageResult> conditionSearch(OrdersPageQueryDTO ordersPageQueryDTO){
         log.info("订单查询");
-        PageResult pageResult = orderService.pageQuery(ordersPageQueryDTO);
+        PageResult pageResult = orderService.adminPageQuery(ordersPageQueryDTO);
         return Result.success(pageResult);
 
     }

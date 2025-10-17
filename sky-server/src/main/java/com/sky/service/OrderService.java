@@ -29,7 +29,7 @@ public interface OrderService {
      */
     void paySuccess(String outTradeNo);
 
-    PageResult pageQuery(OrdersPageQueryDTO ordersPageQueryDTO);
+    PageResult adminPageQuery(OrdersPageQueryDTO ordersPageQueryDTO);
 
     OrderVO getOrderDetail(Long id);
 
@@ -48,4 +48,6 @@ public interface OrderService {
     OrderStatisticsVO statistics();
 
     void reminder(Long id);
+
+    PageResult userPageQuery(OrdersPageQueryDTO ordersPageQueryDTO);
 }

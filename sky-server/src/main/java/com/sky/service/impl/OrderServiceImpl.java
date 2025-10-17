@@ -208,17 +208,19 @@ public class OrderServiceImpl implements OrderService {
      * @return
      */
     @Override
-    public PageResult pageQuery(OrdersPageQueryDTO ordersPageQueryDTO) {
+    public PageResult adminPageQuery(OrdersPageQueryDTO ordersPageQueryDTO) {
         Orders orders = Orders.builder()
-                .userId(BaseContext.getCurrentId())
                 .number(ordersPageQueryDTO.getNumber())
                 .phone(ordersPageQueryDTO.getPhone())
                 .status(ordersPageQueryDTO.getStatus())
                 .build();
-        PageHelper.startPage(ordersPageQueryDTO.getPage(), ordersPageQueryDTO.getPageSize());
+        PageHelper.startPage(ordersPageQueryDTO.getPage(),ordersPageQueryDTO.getPageSize());
 
-        Page<OrderVO> page = (Page<OrderVO>) orderMapper.list(orders, ordersPageQueryDTO.getBeginTime(), ordersPageQueryDTO.getEndTime());
-        return new PageResult(page.size(), page.getResult());
+        List<OrderVO> list = orderMapper.list(orders, ordersPageQueryDTO.getBeginTime(), ordersPageQueryDTO.getEndTime());
+
+        Page<OrderVO> page=(Page<OrderVO>) list;
+
+        return new PageResult(page.getTotal(),page.getResult());
     }
 
     /**
@@ -388,5 +390,21 @@ public class OrderServiceImpl implements OrderService {
         map.put("content","订单号："+orders.getNumber());
         String jsonString = JSON.toJSONString(map);
         webSocketServer.sendToAllClient(jsonString);
+    }
+
+    @Override
+    public PageResult userPageQuery(OrdersPageQueryDTO ordersPageQueryDTO) {
+        Orders orders = Orders.builder()
+                .userId(BaseContext.getCurrentId())
+                .number(ordersPageQueryDTO.getNumber())
+                .phone(ordersPageQueryDTO.getPhone())
+                .status(ordersPageQueryDTO.getStatus())
+                .build();
+        PageHelper.startPage(ordersPageQueryDTO.getPage(),ordersPageQueryDTO.getPageSize());
+
+        List<OrderVO> list = orderMapper.list(orders, ordersPageQueryDTO.getBeginTime(), ordersPageQueryDTO.getEndTime());
+
+        Page<OrderVO> page=(Page<OrderVO>) list;
+        return new PageResult(page.size(), page.getResult());
     }
 }
