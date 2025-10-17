@@ -375,4 +375,18 @@ public class OrderServiceImpl implements OrderService {
         return orderStatisticsVO;
 
     }
+
+    @Override
+    public void reminder(Long id) {
+        Orders orders=orderMapper.getById(id);
+        if(orders==null){
+            throw new OrderBusinessException("订单不存在");
+        }
+        Map map=new HashMap<>();
+        map.put("type",2);
+        map.put("orderId",orders.getId());
+        map.put("content","订单号："+orders.getNumber());
+        String jsonString = JSON.toJSONString(map);
+        webSocketServer.sendToAllClient(jsonString);
+    }
 }
